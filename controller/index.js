@@ -24,8 +24,9 @@ exports.login = function (req, callback) {
  * @api /login/github
  * @description 使用github oauth进行登录
  */
-exports.githubOauth = function (req) {
-  req.redirect(`https://github.com/login/oauth/authorize?client_id=${config.id}&scope=user,public_repo`);
+exports.githubOauth = function (req, callback) {
+  const id =  _.get(config, 'oauth.github.id');
+  callback(null, `https://github.com/login/oauth/authorize?client_id=${id}&scope=user,public_repo`, 'redirect');
 };
 
 /**
@@ -40,13 +41,14 @@ exports.githubCb = function (req, callback) {
   log.info('begin to request');
   co(function* () {
     const result = yield request.get(`https://github.com/login/oauth/access_token?client_id=${id}&client_secret=${secret}&code=${code}`);
+    log.info(result.body);
     const astoken = _.get(result, 'body.access_token');
     log.info('request access_token success', astoken);
     if (astoken) {
       const user = (yield request.get(`https://api.github.com/user?access_token=${astoken}`)).body;
       req.session.user = user;
       log.info('request user info success', user);
-      req.redirect('/');
+      return callback(null, '/', 'redirect');
     } else {
       callback('NO_ACCESS_TOKEN');
     }
@@ -71,12 +73,12 @@ exports.getUser = function (req, callback) {
  * @api /logout
  * @description 用于提供用户登出的接口
  */
-exports.logout = function (req, callback) {
+exports.logout = function (req, cb) {
   const query = req.query;
   delete req.session.user;
   if (query.callback) {
-    req.redirect(callback);
+    cb(null, query.callback, 'redirect');
   } else {
-    req.redirect('/');
+    cb(null, '/', 'redirect');
   }
 };

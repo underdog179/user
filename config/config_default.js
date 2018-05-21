@@ -23,5 +23,10 @@ module.exports = {
     }
   },
   extension: {
+    redirect: {
+      config: {
+        allowDomains: ['github.com']
+      }
+    },
   }
 };
