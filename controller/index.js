@@ -66,3 +66,17 @@ exports.getUser = function (req, callback) {
     callback('UNAUTHED');
   }
 };
+
+/**
+ * @api /logout
+ * @description 用于提供用户登出的接口
+ */
+exports.logout = function (req, callback) {
+  const query = req.query;
+  delete req.session.user;
+  if (query.callback) {
+    req.redirect(callback);
+  } else {
+    req.redirect('/');
+  }
+};
